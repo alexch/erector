@@ -20,19 +20,19 @@ class SpecSuite
     def run_with_rails(version)
       puts "Running rails_spec_suite for Rails version #{version}"
 
-      symlink_vendor_rails(version)
       symlink_config(version)
+      symlink_vendor_rails(version)
 
       ENV['RAILS_SUITE_VERSION'] = version
       require File.join(dir, "rails", "application", "spec", "suite")
     end
 
     def symlink_config(version)
-      system "cd #{dir}/test_app && ln -s ../dependencies/config/#{version} config"
+      system "rm -rf #{dir}/rails/application/config && cp -r #{dir}/rails/dependencies/config/#{version} #{dir}/rails/application/config"
     end
     
     def symlink_vendor_rails(version)
-      system "cd #{dir}/test_app && ln -s ../dependencies/rails/#{version} vendor/rails"
+      system "cd #{dir}/rails/application/vendor && ln -nfs ../../dependencies/rails/#{version} rails"
     end
 
     def supported_rails_versions

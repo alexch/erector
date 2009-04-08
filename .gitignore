@@ -7,8 +7,8 @@
 .idea
 pkg
 rdoc
+spec/rails/application/config
 spec/rails/application/log
 spec/rails/application/tmp
 spec/rails/application/vendor/rails
-spec/rails/application/vendor/plugins/erector
 spec/rails/dependencies/rails
