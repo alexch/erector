@@ -1,15 +1,8 @@
 class SpecSuite
   class << self
     def all
-      system("ruby #{dir}/core_spec_suite.rb") || raise("Core Spec Suite failed")
-      dir = File.dirname(__FILE__)
-      require "#{dir}/../lib/erector/rails/supported_rails_versions"
-      versions = Erector::Rails::SUPPORTED_RAILS_VERSIONS.keys.sort.reverse
-      versions.each do |rails_version|
-        puts "Running rails_spec_suite for Rails version #{rails_version}"
-          run_with_rails_version("#{dir}/rails_spec_suite.rb", rails_version) ||
-            "Suite failed for Rails version #{rails_version}"
-      end
+      core
+      rails
     end
 
     def core
@@ -17,21 +10,47 @@ class SpecSuite
     end
 
     def rails
-      Dir.chdir("#{dir}/rails_root") do
-        run Dir["spec/**/*_spec.rb"]
+      supported_rails_versions.keys.sort.reverse.each do |version|
+        run_with_rails(version)
       end
+    end
+
+    private
+
+    def run_with_rails(version)
+      puts "Running rails_spec_suite for Rails version #{version}"
+
+      symlink_vendor_rails(version)
+      symlink_config(version)
+
+      ENV['RAILS_SUITE_VERSION'] = version
+      require File.join(dir, "rails", "application", "spec", "suite")
+    end
+
+    def symlink_config(version)
+      system "cd #{dir}/test_app && ln -s ../dependencies/config/#{version} config"
+    end
+    
+    def symlink_vendor_rails(version)
+      system "cd #{dir}/test_app && ln -s ../dependencies/rails/#{version} vendor/rails"
+    end
+
+    def supported_rails_versions
+      {
+        "1.99.0" => {'version' => '1.99.0', 'git_tag' => 'v2.0.0_RC1'},
+        "2.0.2" => {'version' => '2.0.2', 'git_tag' => 'v2.0.2'},
+        "2.1.0" => {'version' => '2.1.0', 'git_tag' => 'v2.1.0'},
+        "2.2.0" => {'version' => '2.2.0', 'git_tag' => 'v2.2.0'},
+        "2.2.2" => {'version' => '2.2.2', 'git_tag' => 'v2.2.2'},
+        "2.3.2" => {'version' => '2.3.2', 'git_tag' => 'v2.3.2'},
+        # "edge" => {'version' => 'edge', 'git_tag' => 'master'}, #TODO: Readd edge support
+      }
     end
 
     def run(files)
       files.each do |file|
         require file
       end
-    end
-
-    protected
-    def run_with_rails_version(suite_path, rails_version)
-      system("export RAILS_VERSION=#{rails_version} && ruby #{suite_path}") ||
-        raise("Failed for version #{rails_version}")
     end
 
     def dir
