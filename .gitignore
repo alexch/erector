@@ -3,6 +3,7 @@
 *.ipr
 *~
 *.gem
+.DS_Store
 .idea
 pkg
 rdoc
